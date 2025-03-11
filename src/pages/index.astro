@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import ImageGallery from '../components/ImageGallery';
 import ImageViewer from '../components/ImageViewer';
 import AudioPlayer from '../components/AudioPlayer';
+import CloudinaryUploader from '../components/CloudinaryUploader';
 import GalleryWithLightbox from '../components/GalleryWithLightbox';
 import { getImagesFromFolder, getAllImages, testCloudinaryConnection, testImageAccess } from '../lib/cloudinary';
 
@@ -52,8 +53,8 @@ if (isConnected) {
 	}
 }
 
-// URL de la musique de fond (à remplacer par votre URL)
-const audioUrl = "https://example.com/background-music.mp3";
+// URL de la musique de fond
+const audioUrl = "https://res.cloudinary.com/dvhfgnvtx/video/upload/v1710161400/samples/sea-turtle.mp3";
 
 // URL de la vidéo (à remplacer par votre URL)
 const videoUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ";
@@ -68,8 +69,18 @@ const videoUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ";
 			<GalleryWithLightbox client:load images={images} maxImages={500} />
 		)}
 		
-		<div class="fixed bottom-0 left-0 right-0 bg-white bg-opacity-80 p-2">
-			<AudioPlayer client:load audioUrl={audioUrl} />
-		</div>
+		{/* Lecteur audio minimaliste en bas à gauche */}
+		<AudioPlayer 
+			client:load 
+			audioUrl={audioUrl} 
+			title="Ambiance Musicale" 
+			artist="Album Photos" 
+		/>
+		
+		{/* Module d'upload en bas à droite */}
+		<CloudinaryUploader 
+			client:load 
+			folder="album" 
+		/>
 	</div>
 </Layout>
