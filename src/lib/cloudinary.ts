@@ -12,18 +12,29 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
+// Récupération des variables d'environnement avec valeurs par défaut pour éviter les erreurs
+const CLOUD_NAME = import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME || '';
+const API_KEY = import.meta.env.PUBLIC_CLOUDINARY_API_KEY || '';
+const API_SECRET = import.meta.env.CLOUDINARY_API_SECRET || '';
+
+// Vérification des variables d'environnement
+console.log("=== VÉRIFICATION DES VARIABLES D'ENVIRONNEMENT CLOUDINARY ===");
+console.log("CLOUD_NAME défini:", !!CLOUD_NAME);
+console.log("API_KEY défini:", !!API_KEY);
+console.log("API_SECRET défini:", !!API_SECRET);
+
 // Configuration pour le côté serveur
 cloudinary.config({
-  cloud_name: import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: import.meta.env.PUBLIC_CLOUDINARY_API_KEY,
-  api_secret: import.meta.env.CLOUDINARY_API_SECRET,
+  cloud_name: CLOUD_NAME,
+  api_key: API_KEY,
+  api_secret: API_SECRET,
   secure: true
 });
 
 // Configuration pour le côté client
 export const cld = new Cloudinary({
   cloud: {
-    cloudName: import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME
+    cloudName: CLOUD_NAME
   },
   url: {
     secure: true
@@ -33,30 +44,43 @@ export const cld = new Cloudinary({
 // Fonction pour récupérer les images d'un dossier
 export async function getImagesFromFolder(folderName: string = 'album') {
   try {
-    console.log("Cloud name:", import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME);
-    console.log("API Key:", import.meta.env.PUBLIC_CLOUDINARY_API_KEY);
-    console.log("API Secret (partiel):", import.meta.env.CLOUDINARY_API_SECRET ? "***" : "non défini");
+    console.log("=== DÉBUT getImagesFromFolder ===");
+    console.log("Cloud name:", CLOUD_NAME || "NON DÉFINI");
+    console.log("API Key (partiel):", API_KEY ? API_KEY.substring(0, 5) + "..." : "NON DÉFINI");
+    console.log("API Secret défini:", !!API_SECRET);
+    console.log("Dossier recherché:", folderName);
     
     // Vérifier si les informations d'identification sont définies
-    if (!import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME || 
-        !import.meta.env.PUBLIC_CLOUDINARY_API_KEY || 
-        !import.meta.env.CLOUDINARY_API_SECRET) {
-      console.error("Informations d'identification Cloudinary manquantes");
+    if (!CLOUD_NAME || !API_KEY || !API_SECRET) {
+      console.error("ERREUR: Informations d'identification Cloudinary manquantes");
       return [];
     }
     
     // Utiliser search au lieu de resources pour plus de flexibilité
+    console.log("Exécution de la recherche Cloudinary...");
     const result = await cloudinary.search
       .expression(`folder:${folderName}`)
       .sort_by('created_at', 'desc')
       .max_results(500) // Augmentation à 500 (maximum autorisé par Cloudinary)
       .execute();
     
-    console.log("Résultat de la recherche:", result);
+    console.log("Recherche terminée. Nombre de résultats:", result.resources ? result.resources.length : 0);
+    if (result.resources && result.resources.length > 0) {
+      console.log("Premier résultat:", JSON.stringify(result.resources[0], null, 2));
+    } else {
+      console.log("Aucune ressource trouvée dans le dossier", folderName);
+    }
     
+    console.log("=== FIN getImagesFromFolder ===");
     return result.resources;
-  } catch (error) {
-    console.error('Erreur lors de la récupération des images:', error);
+  } catch (error: any) {
+    console.error('ERREUR CRITIQUE lors de la récupération des images:', error);
+    console.error('Message d\'erreur:', error.message || "Pas de message d'erreur");
+    console.error('Stack trace:', error.stack || "Pas de stack trace");
+    if (error.response) {
+      console.error('Réponse d\'erreur Cloudinary:', error.response);
+    }
+    console.log("=== FIN getImagesFromFolder (avec erreur) ===");
     return [];
   }
 }
@@ -64,7 +88,14 @@ export async function getImagesFromFolder(folderName: string = 'album') {
 // Fonction pour récupérer toutes les images (sans filtre de dossier)
 export async function getAllImages() {
   try {
+    console.log("=== DÉBUT getAllImages ===");
     console.log("Tentative de récupération de toutes les images...");
+    
+    // Vérifier si les informations d'identification sont définies
+    if (!CLOUD_NAME || !API_KEY || !API_SECRET) {
+      console.error("ERREUR: Informations d'identification Cloudinary manquantes");
+      return [];
+    }
     
     // Utiliser search sans filtre de dossier
     const result = await cloudinary.search
@@ -72,11 +103,23 @@ export async function getAllImages() {
       .max_results(100)
       .execute();
     
-    console.log("Résultat de la recherche (toutes images):", result);
+    console.log("Recherche terminée. Nombre de résultats:", result.resources ? result.resources.length : 0);
+    if (result.resources && result.resources.length > 0) {
+      console.log("Premier résultat:", JSON.stringify(result.resources[0], null, 2));
+    } else {
+      console.log("Aucune ressource trouvée");
+    }
     
+    console.log("=== FIN getAllImages ===");
     return result.resources;
-  } catch (error) {
-    console.error('Erreur lors de la récupération de toutes les images:', error);
+  } catch (error: any) {
+    console.error('ERREUR CRITIQUE lors de la récupération de toutes les images:', error);
+    console.error('Message d\'erreur:', error.message || "Pas de message d'erreur");
+    console.error('Stack trace:', error.stack || "Pas de stack trace");
+    if (error.response) {
+      console.error('Réponse d\'erreur Cloudinary:', error.response);
+    }
+    console.log("=== FIN getAllImages (avec erreur) ===");
     return [];
   }
 }
@@ -85,7 +128,7 @@ export async function getAllImages() {
 export function getOptimizedImageUrl(publicId: string, options: any = {}) {
   try {
     console.log(`Génération d'URL optimisée pour: ${publicId}`);
-    const cloudName = import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const cloudName = CLOUD_NAME;
     
     if (!cloudName) {
       console.error("Cloud name non défini");
@@ -177,11 +220,31 @@ export function getResponsiveImageUrl(publicId: string) {
 // Fonction pour tester la connexion à Cloudinary
 export async function testCloudinaryConnection() {
   try {
+    console.log("=== DÉBUT testCloudinaryConnection ===");
+    console.log("Variables d'environnement Cloudinary:");
+    console.log("- CLOUD_NAME:", CLOUD_NAME || "NON DÉFINI");
+    console.log("- API_KEY (partiel):", API_KEY ? API_KEY.substring(0, 5) + "..." : "NON DÉFINI");
+    console.log("- API_SECRET défini:", !!API_SECRET);
+    
+    // Vérifier si les informations d'identification sont définies
+    if (!CLOUD_NAME || !API_KEY || !API_SECRET) {
+      console.error("ERREUR: Informations d'identification Cloudinary manquantes pour le test de connexion");
+      return false;
+    }
+    
+    console.log("Tentative de ping vers Cloudinary...");
     const pingResult = await cloudinary.api.ping();
     console.log("Connexion à Cloudinary réussie:", pingResult);
+    console.log("=== FIN testCloudinaryConnection ===");
     return true;
-  } catch (error) {
-    console.error("Erreur de connexion à Cloudinary:", error);
+  } catch (error: any) {
+    console.error("ERREUR CRITIQUE lors de la connexion à Cloudinary:", error);
+    console.error('Message d\'erreur:', error.message || "Pas de message d'erreur");
+    console.error('Stack trace:', error.stack || "Pas de stack trace");
+    if (error.response) {
+      console.error('Réponse d\'erreur Cloudinary:', error.response);
+    }
+    console.log("=== FIN testCloudinaryConnection (avec erreur) ===");
     return false;
   }
 }
@@ -190,7 +253,7 @@ export async function testCloudinaryConnection() {
 export async function testImageAccess() {
   try {
     console.log("=== TEST D'ACCÈS AUX IMAGES ===");
-    const cloudName = import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const cloudName = CLOUD_NAME;
     if (!cloudName) {
       console.error("Cloud name non défini");
       return false;
