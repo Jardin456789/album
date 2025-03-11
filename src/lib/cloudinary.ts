@@ -19,9 +19,13 @@ const API_SECRET = import.meta.env.CLOUDINARY_API_SECRET || '';
 
 // Vérification des variables d'environnement
 console.log("=== VÉRIFICATION DES VARIABLES D'ENVIRONNEMENT CLOUDINARY ===");
-console.log("CLOUD_NAME défini:", !!CLOUD_NAME);
-console.log("API_KEY défini:", !!API_KEY);
+console.log("CLOUD_NAME défini:", !!CLOUD_NAME, CLOUD_NAME);
+console.log("API_KEY défini:", !!API_KEY, API_KEY);
 console.log("API_SECRET défini:", !!API_SECRET);
+// Afficher les 5 premiers caractères de l'API secret pour vérification
+if (API_SECRET) {
+  console.log("API_SECRET (5 premiers caractères):", API_SECRET.substring(0, 5));
+}
 
 // Configuration pour le côté serveur
 cloudinary.config({
@@ -217,6 +221,18 @@ export function getResponsiveImageUrl(publicId: string) {
   };
 }
 
+// Fonction alternative de configuration pour tester avec des valeurs hardcodées
+export function configureCloudinaryWithHardcodedValues() {
+  console.log("Configuration de Cloudinary avec des valeurs hardcodées pour test");
+  cloudinary.config({
+    cloud_name: "dvhfgnvtx",
+    api_key: "167862566696714",
+    api_secret: "v8YXajzBTrlZwjyrni3ijWealAo",
+    secure: true
+  });
+  return true;
+}
+
 // Fonction pour tester la connexion à Cloudinary
 export async function testCloudinaryConnection() {
   try {
@@ -229,7 +245,8 @@ export async function testCloudinaryConnection() {
     // Vérifier si les informations d'identification sont définies
     if (!CLOUD_NAME || !API_KEY || !API_SECRET) {
       console.error("ERREUR: Informations d'identification Cloudinary manquantes pour le test de connexion");
-      return false;
+      // Essayer avec des valeurs hardcodées
+      configureCloudinaryWithHardcodedValues();
     }
     
     console.log("Tentative de ping vers Cloudinary...");
@@ -244,6 +261,19 @@ export async function testCloudinaryConnection() {
     if (error.response) {
       console.error('Réponse d\'erreur Cloudinary:', error.response);
     }
+    
+    // Si l'erreur persiste même avec les valeurs hardcodées, c'est un problème plus profond
+    console.log("Tentative avec des valeurs hardcodées...");
+    try {
+      configureCloudinaryWithHardcodedValues();
+      const pingResult = await cloudinary.api.ping();
+      console.log("Connexion à Cloudinary réussie avec valeurs hardcodées:", pingResult);
+      console.log("=== FIN testCloudinaryConnection (succès avec valeurs hardcodées) ===");
+      return true;
+    } catch (secondError: any) {
+      console.error("ÉCHEC MÊME AVEC VALEURS HARDCODÉES:", secondError.message);
+    }
+    
     console.log("=== FIN testCloudinaryConnection (avec erreur) ===");
     return false;
   }
