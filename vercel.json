@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "npm run build",
+        "outputDirectory": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "PUBLIC_CLOUDINARY_CLOUD_NAME": "${PUBLIC_CLOUDINARY_CLOUD_NAME}",
+    "PUBLIC_CLOUDINARY_API_KEY": "${PUBLIC_CLOUDINARY_API_KEY}",
+    "CLOUDINARY_API_SECRET": "${CLOUDINARY_API_SECRET}"
+  }
+} 

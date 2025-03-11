@@ -81,6 +81,54 @@ Cette application peut être déployée sur n'importe quelle plateforme supporta
 npm run build
 ```
 
+## Guide de déploiement
+
+### Option 1: Déploiement sur Vercel (Recommandé)
+
+1. Créez un compte sur [Vercel](https://vercel.com) si vous n'en avez pas déjà un
+2. Installez l'outil CLI Vercel:
+   ```bash
+   npm install -g vercel
+   ```
+3. Connectez-vous à votre compte Vercel:
+   ```bash
+   vercel login
+   ```
+4. Déployez votre application:
+   ```bash
+   vercel
+   ```
+5. Configurez les variables d'environnement dans le dashboard Vercel:
+   - `PUBLIC_CLOUDINARY_CLOUD_NAME`
+   - `PUBLIC_CLOUDINARY_API_KEY`
+   - `CLOUDINARY_API_SECRET`
+
+### Option 2: Déploiement sur Netlify
+
+1. Créez un compte sur [Netlify](https://netlify.com)
+2. Installez l'adaptateur Netlify:
+   ```bash
+   npm install @astrojs/netlify
+   ```
+3. Modifiez `astro.config.mjs`:
+   ```js
+   import netlify from '@astrojs/netlify/functions';
+   // ...
+   adapter: netlify()
+   ```
+4. Déployez en connectant votre dépôt GitHub à Netlify
+5. Configurez les variables d'environnement dans le dashboard Netlify
+
+### Option 3: Déploiement sur Render
+
+1. Créez un compte sur [Render](https://render.com)
+2. Créez un nouveau service Web
+3. Connectez votre dépôt GitHub
+4. Configurez:
+   - Build Command: `npm run build`
+   - Start Command: `node ./dist/server/entry.mjs`
+5. Ajoutez les variables d'environnement dans le dashboard Render
+
 ## Licence
 
 MIT
