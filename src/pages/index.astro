@@ -8,48 +8,69 @@ import GalleryWithLightbox from '../components/GalleryWithLightbox';
 import { getImagesFromFolder, getAllImages, testCloudinaryConnection, testImageAccess } from '../lib/cloudinary';
 
 console.log("=== DÉMARRAGE DE LA PAGE INDEX ===");
+
+// Vérification des variables d'environnement
+const CLOUD_NAME = import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME;
+const API_KEY = import.meta.env.PUBLIC_CLOUDINARY_API_KEY;
+const API_SECRET = import.meta.env.CLOUDINARY_API_SECRET;
+
 console.log("Variables d'environnement:", {
-	CLOUD_NAME: import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME ? "défini" : "non défini",
-	API_KEY: import.meta.env.PUBLIC_CLOUDINARY_API_KEY ? "défini" : "non défini",
-	API_SECRET: import.meta.env.CLOUDINARY_API_SECRET ? "défini" : "non défini"
+	CLOUD_NAME: CLOUD_NAME ? "défini" : "non défini",
+	API_KEY: API_KEY ? "défini" : "non défini",
+	API_SECRET: API_SECRET ? "défini" : "non défini"
 });
 
-// Tester la connexion à Cloudinary
-const isConnected = await testCloudinaryConnection();
-console.log("Connexion à Cloudinary:", isConnected ? "Réussie" : "Échouée");
+// Message d'erreur si les variables ne sont pas définies
+let errorMessage = "";
+if (!CLOUD_NAME) errorMessage += "PUBLIC_CLOUDINARY_CLOUD_NAME manquant. ";
+if (!API_KEY) errorMessage += "PUBLIC_CLOUDINARY_API_KEY manquant. ";
+if (!API_SECRET) errorMessage += "CLOUDINARY_API_SECRET manquant. ";
 
-// Tester l'accès à une image spécifique
-const canAccessImage = await testImageAccess();
-console.log("Test d'accès à une image:", canAccessImage ? "Réussi" : "Échoué");
-
-// Récupérer les images depuis Cloudinary
+// Tester la connexion à Cloudinary seulement si les variables sont définies
+let isConnected = false;
+let canAccessImage = false;
 let images = [];
-if (isConnected) {
-	try {
-		console.log("Tentative de récupération des images du dossier 'album'...");
-		// Essayer d'abord de récupérer les images du dossier "album"
-		images = await getImagesFromFolder();
-		console.log("Nombre d'images récupérées du dossier 'album':", images.length);
-		
-		// Si aucune image n'est trouvée dans le dossier "album", récupérer toutes les images
-		if (images.length === 0) {
-			console.log("Aucune image trouvée dans le dossier 'album', récupération de toutes les images...");
-			images = await getAllImages();
-			console.log("Nombre total d'images récupérées:", images.length);
+
+if (!errorMessage) {
+	// Tester la connexion à Cloudinary
+	isConnected = await testCloudinaryConnection();
+	console.log("Connexion à Cloudinary:", isConnected ? "Réussie" : "Échouée");
+
+	// Tester l'accès à une image spécifique
+	canAccessImage = await testImageAccess();
+	console.log("Test d'accès à une image:", canAccessImage ? "Réussi" : "Échoué");
+
+	// Récupérer les images depuis Cloudinary
+	if (isConnected) {
+		try {
+			console.log("Tentative de récupération des images du dossier 'album'...");
+			// Essayer d'abord de récupérer les images du dossier "album"
+			images = await getImagesFromFolder();
+			console.log("Nombre d'images récupérées du dossier 'album':", images.length);
+			
+			// Si aucune image n'est trouvée dans le dossier "album", récupérer toutes les images
+			if (images.length === 0) {
+				console.log("Aucune image trouvée dans le dossier 'album', récupération de toutes les images...");
+				images = await getAllImages();
+				console.log("Nombre total d'images récupérées:", images.length);
+			}
+			
+			// Afficher des informations détaillées sur les images récupérées
+			if (images.length > 0) {
+				console.log("Première image récupérée:", JSON.stringify(images[0], null, 2));
+				console.log("Format des public_id:");
+				images.slice(0, 3).forEach((img: any, i: number) => {
+					console.log(`Image ${i}: public_id=${img.public_id}, format=${img.format}, secure_url=${img.secure_url}`);
+				});
+			} else {
+				console.log("AUCUNE IMAGE RÉCUPÉRÉE - Vérifiez votre compte Cloudinary");
+			}
+		} catch (error) {
+			console.error("ERREUR lors de la récupération des images:", error);
+			errorMessage = "Erreur lors de la récupération des images. Vérifiez les logs pour plus de détails.";
 		}
-		
-		// Afficher des informations détaillées sur les images récupérées
-		if (images.length > 0) {
-			console.log("Première image récupérée:", JSON.stringify(images[0], null, 2));
-			console.log("Format des public_id:");
-			images.slice(0, 3).forEach((img: any, i: number) => {
-				console.log(`Image ${i}: public_id=${img.public_id}, format=${img.format}, secure_url=${img.secure_url}`);
-			});
-		} else {
-			console.log("AUCUNE IMAGE RÉCUPÉRÉE - Vérifiez votre compte Cloudinary");
-		}
-	} catch (error) {
-		console.error("ERREUR lors de la récupération des images:", error);
+	} else {
+		errorMessage = "Impossible de se connecter à Cloudinary. Vérifiez vos identifiants.";
 	}
 }
 
@@ -65,6 +86,21 @@ const videoUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ";
 
 <Layout title="Album Photo - Galerie d'images" description="Une galerie d'images moderne avec Astro et Cloudinary">
 	<div class="bg-white min-h-screen">
+		{errorMessage && (
+			<div class="p-4 m-4 bg-red-100 border border-red-400 text-red-700 rounded">
+				<h2 class="text-lg font-bold mb-2">Erreur de configuration</h2>
+				<p>{errorMessage}</p>
+				<p class="mt-2 text-sm">
+					Assurez-vous que les variables d'environnement sont correctement configurées dans le dashboard Vercel :
+					<ul class="list-disc ml-5 mt-1">
+						<li>PUBLIC_CLOUDINARY_CLOUD_NAME</li>
+						<li>PUBLIC_CLOUDINARY_API_KEY</li>
+						<li>CLOUDINARY_API_SECRET</li>
+					</ul>
+				</p>
+			</div>
+		)}
+		
 		{images.length > 0 && (
 			<GalleryWithLightbox client:load images={images} maxImages={500} />
 		)}
