@@ -99,11 +99,10 @@ export default function GalleryWithLightbox({
       {/* Logo en haut à gauche, par-dessus tout */}
       <div className="fixed top-4 left-4 z-50">
         {/* 
-          Note: Remplacez le chemin ci-dessous par le chemin correct vers votre logo
-          après l'avoir ajouté manuellement dans le dossier public
+          Utilisation du logo SVG existant dans le dossier assets/logo
         */}
         <img 
-          src="/logo.png" 
+          src="/src/assets/logo/album-logo.svg" 
           alt="Album Logo" 
           width={120} 
           height={40}
