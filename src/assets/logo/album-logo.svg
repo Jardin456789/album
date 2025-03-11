@@ -1,0 +1,7 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="40" rx="8" fill="black" fill-opacity="0.5"/>
+  <path d="M15 10H25C26.1046 10 27 10.8954 27 12V28C27 29.1046 26.1046 30 25 30H15C13.8954 30 13 29.1046 13 28V12C13 10.8954 13.8954 10 15 10Z" fill="white"/>
+  <path d="M30 15H40C41.1046 15 42 15.8954 42 17V28C42 29.1046 41.1046 30 40 30H30C28.8954 30 28 29.1046 28 28V17C28 15.8954 28.8954 15 30 15Z" fill="white"/>
+  <path d="M45 20H55C56.1046 20 57 20.8954 57 22V28C57 29.1046 56.1046 30 55 30H45C43.8954 30 43 29.1046 43 28V22C43 20.8954 43.8954 20 45 20Z" fill="white"/>
+  <text x="65" y="25" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">ALBUM</text>
+</svg> 

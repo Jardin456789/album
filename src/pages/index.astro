@@ -1,11 +1,75 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import ImageGallery from '../components/ImageGallery';
+import ImageViewer from '../components/ImageViewer';
+import AudioPlayer from '../components/AudioPlayer';
+import GalleryWithLightbox from '../components/GalleryWithLightbox';
+import { getImagesFromFolder, getAllImages, testCloudinaryConnection, testImageAccess } from '../lib/cloudinary';
+
+console.log("=== DÉMARRAGE DE LA PAGE INDEX ===");
+console.log("Variables d'environnement:", {
+	CLOUD_NAME: import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME ? "défini" : "non défini",
+	API_KEY: import.meta.env.PUBLIC_CLOUDINARY_API_KEY ? "défini" : "non défini",
+	API_SECRET: import.meta.env.CLOUDINARY_API_SECRET ? "défini" : "non défini"
+});
+
+// Tester la connexion à Cloudinary
+const isConnected = await testCloudinaryConnection();
+console.log("Connexion à Cloudinary:", isConnected ? "Réussie" : "Échouée");
+
+// Tester l'accès à une image spécifique
+const canAccessImage = await testImageAccess();
+console.log("Test d'accès à une image:", canAccessImage ? "Réussi" : "Échoué");
+
+// Récupérer les images depuis Cloudinary
+let images = [];
+if (isConnected) {
+	try {
+		console.log("Tentative de récupération des images du dossier 'album'...");
+		// Essayer d'abord de récupérer les images du dossier "album"
+		images = await getImagesFromFolder();
+		console.log("Nombre d'images récupérées du dossier 'album':", images.length);
+		
+		// Si aucune image n'est trouvée dans le dossier "album", récupérer toutes les images
+		if (images.length === 0) {
+			console.log("Aucune image trouvée dans le dossier 'album', récupération de toutes les images...");
+			images = await getAllImages();
+			console.log("Nombre total d'images récupérées:", images.length);
+		}
+		
+		// Afficher des informations détaillées sur les images récupérées
+		if (images.length > 0) {
+			console.log("Première image récupérée:", JSON.stringify(images[0], null, 2));
+			console.log("Format des public_id:");
+			images.slice(0, 3).forEach((img: any, i: number) => {
+				console.log(`Image ${i}: public_id=${img.public_id}, format=${img.format}, secure_url=${img.secure_url}`);
+			});
+		} else {
+			console.log("AUCUNE IMAGE RÉCUPÉRÉE - Vérifiez votre compte Cloudinary");
+		}
+	} catch (error) {
+		console.error("ERREUR lors de la récupération des images:", error);
+	}
+}
+
+// URL de la musique de fond (à remplacer par votre URL)
+const audioUrl = "https://example.com/background-music.mp3";
+
+// URL de la vidéo (à remplacer par votre URL)
+const videoUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ";
 
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Album Photo - Galerie d'images" description="Une galerie d'images moderne avec Astro et Cloudinary">
+	<div class="bg-white min-h-screen">
+		{images.length > 0 && (
+			<GalleryWithLightbox client:load images={images} maxImages={500} />
+		)}
+		
+		<div class="fixed bottom-0 left-0 right-0 bg-white bg-opacity-80 p-2">
+			<AudioPlayer client:load audioUrl={audioUrl} />
+		</div>
+	</div>
 </Layout>
